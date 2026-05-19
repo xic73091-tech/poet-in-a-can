@@ -1,0 +1,5 @@
+[project]
+name = "poet-in-a-can"
+version = "0.1.0"
+description = "罐头里的诗人 - 一个有生命感的数字存在"
+requires-python = ">=3.10"

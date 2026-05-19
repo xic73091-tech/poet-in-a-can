@@ -18,7 +18,7 @@ from typing import Optional
 
 
 class EmotionTag(Enum):
-    """情感标签"""
+    """情感标签（对应 API 层英文标识：joy, sadness, calm, excitement, nostalgia, anxiety, love, loneliness, curiosity, melancholy）"""
     JOY = "喜悦"
     SADNESS = "悲伤"
     CALM = "平静"
@@ -32,7 +32,7 @@ class EmotionTag(Enum):
 
 
 class SourceType(Enum):
-    """记忆来源"""
+    """记忆来源（对应 API 层英文标识：photo, location, conversation, weather, time, gesture, silence）"""
     PHOTO = "照片"
     LOCATION = "位置"
     CONVERSATION = "对话"
@@ -40,6 +40,20 @@ class SourceType(Enum):
     TIME = "时间"
     GESTURE = "手势"
     SILENCE = "沉默"
+
+
+# 枚举值映射：内部中文 ↔ API英文（参考 05_技术架构/API接口定义.yaml）
+EMOTION_API_MAP = {
+    "喜悦": "joy", "悲伤": "sadness", "平静": "calm", "兴奋": "excitement",
+    "怀旧": "nostalgia", "焦虑": "anxiety", "爱": "love", "孤独": "loneliness",
+    "好奇": "curiosity", "忧郁": "melancholy",
+}
+SOURCE_API_MAP = {
+    "照片": "photo", "位置": "location", "对话": "conversation",
+    "天气": "weather", "时间": "time", "手势": "gesture", "沉默": "silence",
+}
+API_EMOTION_MAP = {v: k for k, v in EMOTION_API_MAP.items()}
+API_SOURCE_MAP = {v: k for k, v in SOURCE_API_MAP.items()}
 
 
 @dataclass
