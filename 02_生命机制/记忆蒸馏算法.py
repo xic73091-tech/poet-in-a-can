@@ -100,11 +100,13 @@ class ShortTermMemory:
         self.capacity = capacity
         self.memories: list[MemoryFragment] = []
 
-    def add(self, fragment: MemoryFragment):
-        """添加记忆片段"""
+    def add(self, fragment: MemoryFragment) -> Optional[MemoryFragment]:
+        """添加记忆片段，返回被驱逐的高价值记忆（供蒸馏引擎处理）"""
         self.memories.append(fragment)
+        evicted = None
         if len(self.memories) > self.capacity:
-            self._evict()
+            evicted = self._evict()
+        return evicted
 
     def _evict(self):
         """淘汰最不重要的记忆"""
@@ -356,7 +358,12 @@ class MemorySystem:
             emotion=emotion,
             intensity=intensity
         )
-        self.short_term.add(fragment)
+        evicted = self.short_term.add(fragment)
+
+        # 被驱逐的高价值记忆直接进入长期记忆（避免丢失）
+        if evicted is not None:
+            evicted.touch()
+            self.long_term.add(evicted)
 
         # 检查是否需要蒸馏
         if DistillationEngine.should_distill(self.short_term):
@@ -375,8 +382,16 @@ class MemorySystem:
         return count
 
     def recall(self, query: str = "", emotion: Optional[EmotionTag] = None) -> list[MemoryFragment]:
-        """回忆：从长期记忆中检索"""
-        results = self.long_term.query(emotion=emotion, limit=5)
+        """回忆：从长期记忆中检索，支持关键词和情感过滤"""
+        if query:
+            # 关键词匹配：在内容中搜索
+            candidates = [m for m in self.long_term.memories if query in m.content]
+            if emotion:
+                candidates = [m for m in candidates if m.emotion == emotion]
+            candidates.sort(key=lambda m: m.importance, reverse=True)
+            results = candidates[:5]
+        else:
+            results = self.long_term.query(emotion=emotion, limit=5)
         # 访问这些记忆（延长它们的寿命）
         for m in results:
             m.touch()
